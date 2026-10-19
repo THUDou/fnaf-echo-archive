@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#050406">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>玩具熊的五夜：残响档案 · Echo Archive</title>
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= 游戏 HUD ================= -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="clockbox">
+        <b id="hudNight">NIGHT 1</b>
+        <span id="hudClock">12 AM</span>
+      </div>
+      <div class="meters">
+        <div class="meter">
+          <label>电量</label>
+          <div class="bar"><i id="barPower" class="bar-fill power"></i></div>
+          <span id="txtPower">100%</span>
+        </div>
+        <div class="meter">
+          <label>灵怨</label>
+          <div class="bar"><i id="barEcho" class="bar-fill echo"></i></div>
+          <span id="txtEcho">0%</span>
+        </div>
+        <div class="meter">
+          <label>温度</label>
+          <div class="bar"><i id="barHeat" class="bar-fill heat"></i></div>
+          <span id="txtHeat">0%</span>
+        </div>
+      </div>
+      <button id="btnPause" class="icon-btn" aria-label="暂停">❚❚</button>
+    </div>
+
+    <div class="stage-area">
+      <canvas id="stage" width="1280" height="720"></canvas>
+
+      <div class="side left">
+        <button id="btnLL" class="ctl small">灯</button>
+        <button id="btnLD" class="ctl door">门</button>
+      </div>
+      <div class="side right">
+        <button id="btnRL" class="ctl small">灯</button>
+        <button id="btnRD" class="ctl door">门</button>
+      </div>
+
+      <div id="camPanel">
+        <div class="cam-head">
+          <span>监控 · 音乐盒</span>
+          <div id="boxGauge"><i id="boxBar" class="box-fill"></i></div>
+        </div>
+      </div>
+
+      <button id="btnStare">注视<i id="stareRing"></i></button>
+      <div id="toast"></div>
+      <div id="rotateHint">横屏体验更佳</div>
+    </div>
+
+    <div class="hud-bottom">
+      <button id="btnCams" class="wide">监控</button>
+      <button id="btnWind">上弦</button>
+      <button id="btnVent">通风</button>
+      <button id="btnLure">音诱<b id="lureNum">3</b></button>
+    </div>
+  </div>
+
+  <!-- ================= 菜单 ================= -->
+  <div id="scrMenu" class="screen on">
+    <div class="menu-bg"></div>
+    <div class="menu-inner">
+      <div class="eyebrow">FAN PROJECT · 2037</div>
+      <h1>玩具熊的五夜<span>残响档案</span></h1>
+      <div class="en-title">FIVE NIGHTS AT FAZBEAR'S · ECHO ARCHIVE</div>
+      <p class="lede">
+        广场废墟之下，地下六层的回声档案馆收容着七件无法归档的残件。<br>
+        你的工作不是修复它们，而是让它们把记忆播完——然后活到六点。
+      </p>
+      <div class="menu-btns">
+        <button id="btnStart" class="primary">开始值班</button>
+        <button id="btnContinue">继续（第 <span id="contNum">1</span> 夜）</button>
+        <button id="btnNights">选择夜次 / 自定义夜</button>
+        <button id="btnCodex">档案库</button>
+        <button id="btnHelp">玩法与操作</button>
+        <button id="btnSettings">设置</button>
+      </div>
+      <div id="saveInfo" class="save-info">已解锁夜次：1</div>
+      <div class="warn">⚠ 本作含突然惊吓、闪烁与高频噪声。光敏性癫痫患者请谨慎，可在设置中开启"减少闪烁"。</div>
+      <div class="credit">非商业同人作品 · 全部美术与音效由代码实时生成 · 与 Scott Cawthon 及 Steel Wool Studios 无隶属关系</div>
+    </div>
+  </div>
+
+  <!-- ================= 选夜 ================= -->
+  <div id="scrNights" class="screen">
+    <div class="panel">
+      <h2>夜次档案</h2>
+      <p class="sub">每晚约 4 分钟。通关后解锁下一夜与对应历史档案。</p>
+      <div id="nightGrid" class="night-grid"></div>
+      <h3 class="mt">自定义夜 · 难度旋钮</h3>
+      <p class="sub">全部推到 20 即为社区经典的"二十二十二十"挑战。</p>
+      <div id="customPanel" class="custom-panel"></div>
+      <div class="row-end"><button id="btnNightsBack">返回</button></div>
+    </div>
+  </div>
+
+  <!-- ================= 夜前简报 ================= -->
+  <div id="scrBrief" class="screen">
+    <div class="panel brief">
+      <div id="briefNum" class="brief-num">NIGHT 1</div>
+      <h2 id="briefTitle">第一夜</h2>
+      <div id="briefText" class="brief-text"></div>
+      <div class="phone-box">
+        <div class="phone-label">☎ 语音留言 · 上一任档案员</div>
+        <pre id="briefPhone"></pre>
+      </div>
+      <div class="row-end">
+        <button id="btnBriefBack">返回</button>
+        <button id="btnBegin" class="primary">开始值班</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 档案库 ================= -->
+  <div id="scrCodex" class="screen">
+    <div class="panel wide">
+      <div class="codex-title">
+        <h2>回声档案馆 · 档案库</h2>
+        <span id="codexCount">0 / 0</span>
+      </div>
+      <p class="sub">从 1983 到 2037：正典、影视、小说与同人宇宙的碎片，以及本作的原创设定。</p>
+      <div class="codex-wrap">
+        <div id="codexList" class="codex-list"></div>
+        <div id="codexDetail" class="codex-detail"></div>
+      </div>
+      <div class="row-end"><button id="btnCodexBack">返回</button></div>
+    </div>
+  </div>
+
+  <!-- ================= 玩法 ================= -->
+  <div id="scrHelp" class="screen">
+    <div class="panel wide">
+      <h2>玩法与操作</h2>
+      <p class="sub">你守着一间办公室：两扇门、一盏灯、一块监控屏，以及三条会杀人的资源条。</p>
+
+      <div class="help-grid">
+        <div class="help-card">
+          <h3>三资源</h3>
+          <ul>
+            <li><b>电量</b>：所有设备都在耗电。用尽即停电，停电后只能等。</li>
+            <li><b>灵怨</b>：被注视的怨灵会变强。满 100 时闸板强制弹开、画面欺骗你。</li>
+            <li><b>温度</b>：两扇门同时关闭会快速升温。满 100 触发散热过载，闸板锁死 4 秒。</li>
+          </ul>
+        </div>
+        <div class="help-card">
+          <h3>七件残件</h3>
+          <ul>
+            <li><b>费兹</b>（棕熊）：走东廊。你不看它时才移动。</li>
+            <li><b>弹簧</b>（紫兔）：走西廊，速度最快。</li>
+            <li><b>琪可</b>（黄鸡）：经厨房爬通风口，关挡板可逼退。</li>
+            <li><b>海盗狐</b>：四段蓄力后冲刺，必须在 2 秒内关门；盯住海盗湾可拖延。</li>
+            <li><b>提线</b>：音乐盒归零后约 10 秒必杀，只能靠上弦阻止。</li>
+            <li><b>残响</b>：不杀人，只污染画面、推高灵怨。</li>
+            <li><b>金灵</b>：第五夜起出现，必须长按"注视"3 秒驱散。</li>
+          </ul>
+        </div>
+        <div class="help-card">
+          <h3>键盘（电脑）</h3>
+          <ul class="keys">
+            <li><kbd>Q</kbd> 左门 <kbd>E</kbd> 右门</li>
+            <li><kbd>A</kbd> 左灯 <kbd>D</kbd> 右灯</li>
+            <li><kbd>Space</kbd> 监控开合</li>
+            <li><kbd>1</kbd>-<kbd>0</kbd> 切换摄像头</li>
+            <li><kbd>W</kbd> 通风挡板</li>
+            <li><kbd>F</kbd> 音频诱饵</li>
+            <li>按住 <kbd>S</kbd> 上弦（需监控 6 号机）</li>
+            <li><kbd>Esc</kbd> 暂停</li>
+          </ul>
+        </div>
+        <div class="help-card">
+          <h3>触屏（手机）</h3>
+          <ul>
+            <li>屏幕左右两侧：灯 / 门。</li>
+            <li>底部：监控、上弦（长按）、通风、音诱。</li>
+            <li>监控打开后点左下角机位格切换摄像头。</li>
+            <li>金灵出现时，长按屏幕中央的"注视"。</li>
+            <li>建议横屏，并戴上耳机——脚步有左右声像。</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 class="mt">原创机制说明</h3>
+      <p class="note">
+        「灵怨值」把"看"本身变成一种代价：监控不再是绝对安全的窗户，而是注意力本身。
+        「温度」是对"堵门流"的硬性反制：同时关两扇门会把自己烤死。
+        「音频诱饵」只有三次，用声音换距离，源自二代的手电与三代的声音诱敌。
+      </p>
+      <div class="row-end"><button id="btnHelpBack">返回</button></div>
+    </div>
+  </div>
+
+  <!-- ================= 设置 ================= -->
+  <div id="scrSettings" class="screen">
+    <div class="panel">
+      <h2>设置</h2>
+      <div class="set-row">
+        <label for="volRange">音量</label>
+        <input id="volRange" type="range" min="0" max="100" step="1" value="70">
+        <b id="volVal">70%</b>
+      </div>
+      <div class="set-row">
+        <label for="flickReduce">减少闪烁与画面抖动</label>
+        <input id="flickReduce" type="checkbox">
+      </div>
+      <div class="set-row">
+        <label>存档</label>
+        <button id="btnResetSave" class="danger">清除全部进度</button>
+      </div>
+      <p class="note">进度保存在本机浏览器（localStorage），换浏览器或清理数据会丢失。</p>
+      <div class="row-end"><button id="btnSettingsBack">返回</button></div>
+    </div>
+  </div>
+
+  <!-- ================= 结算 ================= -->
+  <div id="scrResult" class="screen">
+    <div class="panel result">
+      <div id="resTitle" class="res-title">6 : 00 AM</div>
+      <pre id="resText" class="res-text"></pre>
+      <div id="resStats" class="res-stats"></div>
+      <div class="row-end">
+        <button id="btnResultMenu">主菜单</button>
+        <button id="btnRetry">重来一夜</button>
+        <button id="btnNext" class="primary">下一夜</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 暂停 ================= -->
+  <div id="scrPause" class="screen overlay">
+    <div class="panel small-panel">
+      <h2>已暂停</h2>
+      <p class="sub">时间、电量与人偶都已停止。深呼吸。</p>
+      <div class="row-end">
+        <button id="btnQuit">放弃并退出</button>
+        <button id="btnResume" class="primary">继续值班</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/lore.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/art.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
